@@ -41,6 +41,7 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
     public Subscriber<sensor_msgs.Image> vidSubFiducial;
 
     private Publisher<rss_msgs.BallLocationMsg> ballLocationPub;
+    private Publisher<rss_msgs.FiducialMsg> fiducialLocationPub;
 
     /**
      * <p>
@@ -83,39 +84,26 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
             }
 
             Image destBlock = new Image(srcBlock);
-            blockTracker.applyBlock(srcBlock, destBlock);
+            CompleteBallMessage completeBallMsg = blockTracker.applyBlock(srcBlock, destBlock);
             Image destFiducial = new Image(srcFiducial);
-            fiducialTracker.applyFiducial(srcFiducial, destFiducial);
+            CompleteFiducialMessage completeFidMsg = fiducialTracker.applyFiducial(srcFiducial, destFiducial);
 
             // update newly formed vision message
             gui.setVisionImage(srcBlock.toArray(),srcFiducial.toArray(),destBlock.toArray(),destFiducial.toArray(),width,height);
 
-	    /*	
-            // Begin Student Code
-            double range=1;
-            double bearing=0;
-
-	    if (blobTrack.targetDetected) {
-                blobTrack.blobFix();
-   
-             range = blobTrack.targetRange;
-                bearing = blobTrack.targetBearing;
-            } else {
-                // range=-1 is going to be our special output value to convey
-                // "blob not found" in the
-                // message we are publishing
-                range = -1;
-                bearing = 0;
+            if (completeBallMsg.sendMessage) {
+            	BallLocationMsg ballMsg = ballLocationPub.newMessage();
+            	ballMsg.setRange(completeBallMsg.range);
+            	ballMsg.setBearing(completeBallMsg.bearing);
+            	ballLocationPub.publish(ballMsg);
             }
-	    
-            // publish velocity messages to move the robot towards the target
-            BallLocationMsg msg = ballLocationPub.newMessage();
-            msg.setRange(range);
-            msg.setBearing(bearing);
-	    //System.out.println("Publishing ballLocationMsg");
-            ballLocationPub.publish(msg);
-            // End Student Code
-	    */
+            
+            if (completeFidMsg.sendMessage) {
+            	FiducialMsg fidMsg = fiducialLocationPub.newMessage();
+            	fidMsg.setRange(completeFidMsg.range);
+            	fidMsg.setBearing(completeFidMsg.bearing)
+            	fiducialLocationPub.publish(fidMsg);
+            }
         }
     }
 
@@ -137,8 +125,8 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
         // set parameters on blobTrack as you desire
 
         // initialize the ROS publication to command/MotorsBallLocation
-        ballLocationPub = node.newPublisher("/command/MotorsBallLocation",
-                "rss_msgs/BallLocationMsg");
+        ballLocationPub = node.newPublisher("/vision/BallLocation", "rss_msgs/BallLocationMsg");
+        fiducialLocationPub = node.newPublisher("/vision/FiducialLocation", "rss_msgs/FiducialLocationMsg");
 
         // End Student Code
 

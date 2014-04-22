@@ -67,7 +67,7 @@ public class BlobTrackingChallenge {
 		capturedImages = new ArrayList<Image>();
 	}
 
-	public void applyBlock(Image src, Image dest) {
+	public CompleteBallMessage applyBlock(Image src, Image dest) {
 		currentImage = src;
 		destinationImage = dest; 
 		
@@ -90,21 +90,25 @@ public class BlobTrackingChallenge {
 		
 		//System.out.println("Found " + discoveredBlobs.size() + " blobs");
 		int grayscale = 50;
+		CompleteBallMessage completeBallMsg = new CompleteBallMessage();
 		for (Blob blob : discoveredObjects) {
-			Set<Point2D.Double> blobPoints = blob.getPoints();
-			//System.out.println("\tBlob of size " + blobPoints.size());
-			if (blobPoints.size() > 100) {
-				//System.out.println("grayscale: " + grayscale);
-				for (Point2D.Double point : blobPoints) {
-					dest.setPixel((int) point.x, (int) point.y, (byte) grayscale,
-							(byte) grayscale, (byte) grayscale);
-				}
-				grayscale += 50;
+			Set<Point2D.Double> blobPoints = blob.getPoints();	
+			for (Point2D.Double point : blobPoints) {
+				dest.setPixel((int) point.x, (int) point.y, (byte) grayscale,
+						(byte) grayscale, (byte) grayscale);
 			}
+			double currentRange = blob.calculateRangeBlock();
+			double currentBearing = blob.calculateBearing(width);
+			if (!completeBallMsg.sendMessage || currentRange < completeBallMsg.range) {
+				completeBallMsg = new CompleteBallMessage(currentRange, currentBearing);
+			}
+			grayscale += 50;		
 		}
+		
+		return completeBallMsg;
 	}
 	
-	public void applyFiducial(Image src, Image dest) {
+	public CompleteFiducialMessage applyFiducial(Image src, Image dest) {
 		currentImage = src;
 		destinationImage = dest; 
 		
@@ -153,6 +157,7 @@ public class BlobTrackingChallenge {
 		}
 			
 		//Color fiducials blue
+		CompleteFiducialMessage completeFidMsg = new CompleteFiducialMessage();
 		for (int i=0; i<discoveredSpheres.size(); i++) {
 			for (int j=i+1; j<discoveredSpheres.size(); j++) {
 				if (discoveredSpheres.get(i).formsFiducial(discoveredSpheres.get(j), width, height)) {
@@ -164,9 +169,16 @@ public class BlobTrackingChallenge {
 						dest.setPixel((int) point.x, (int) point.y, (byte) 0,
 								(byte) 0, (byte) 255);
 					}
+					double currentRange = (discoveredSpheres.get(i).calculateRangeFiducial() + discoveredSpheres.get(j).calculateRangeFiducial()) / 2.0;
+					double currentBearing = (discoveredSpheres.get(i).calculateBearing(width) + discoveredSpheres.get(j).calculateBearing(width)) / 2.0;
+					if (!completeFidMsg.sendMessage || currentRange < completeFidMsg.range) {
+						completeFidMsg = new CompleteFiducialMessage(currentRange, currentBearing);
+					}
 				}
 			}
 		}
+		
+		return completeFidMsg;
 	}
 
 	public void computeUpperLeftAverage() {
@@ -289,9 +301,6 @@ public class BlobTrackingChallenge {
 	public Set<Blob> findObjectRegions(Set<Blob> hueConstantRegions) {
 		Set<Blob> objectBlobs = new HashSet<Blob>();
 		for (Blob blob : hueConstantRegions) {
-			//System.out.println("size: " + blob.getSize() + " " + (blob.getSize() > sizeThreshold));
-			//System.out.println("edge: " + (blob.pointsOnEdge(width, height)));
-			//System.out.println("object: " + (blob.isObject(currentHues)));
 			if (blob.getSize() > sizeThreshold && !blob.pointsOnEdge(width, height) && blob.isObject(currentHSV)) {
 				objectBlobs.add(blob);
 				blob.calculateBasics(width, height);

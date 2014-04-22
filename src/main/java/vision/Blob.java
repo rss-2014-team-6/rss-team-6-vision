@@ -169,15 +169,15 @@ public class Blob {
 				(Math.abs(this.centroidY - this.height/2 - imgHeight/2) <= horizontalAlignThreshold*imgHeight));
 	}
 
-	private double calculateRangeBlock() {
+	public double calculateRangeBlock() {
 		return blockSize*160/this.width*0.29/0.28;
 	}
 	
-	private double calculateRangeFiducial() {
+	public double calculateRangeFiducial() {
 		return sphereSize*160/this.width*0.29/0.28;
 	}
 
-	private double calculateBearing(int imgWidth) {
+	public double calculateBearing(int imgWidth) {
 		return (imgWidth/2 - centroidX)*Math.atan2(14.0, 29.0)/80;
 	}
 
