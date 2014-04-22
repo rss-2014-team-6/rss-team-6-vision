@@ -6,6 +6,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import org.ros.message.MessageListener;
 import rss_msgs.MotionMsg;
 import rss_msgs.BallLocationMsg;
+import rss_msgs.FiducialMsg;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
