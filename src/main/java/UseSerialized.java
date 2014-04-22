@@ -1,4 +1,4 @@
-package VisualServo;
+package vision;
 
 import java.io.*;
 import java.util.ArrayList;

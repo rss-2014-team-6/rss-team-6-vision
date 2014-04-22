@@ -1,4 +1,4 @@
-package VisualServo;
+package vision;
 
 import java.awt.FlowLayout;
 import java.awt.image.MemoryImageSource;

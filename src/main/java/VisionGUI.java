@@ -1,4 +1,4 @@
-package VisualServo;
+package vision;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

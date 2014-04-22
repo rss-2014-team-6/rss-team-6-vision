@@ -1,4 +1,4 @@
-package VisualServo;
+package vision;
 
 /**
  * @author Edsinger, from http://in3www.epfl.ch/~jpilet/serie6/GaussianBlur.java
