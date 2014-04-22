@@ -127,7 +127,7 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
 
         // initialize the ROS publication to command/MotorsBallLocation
         ballLocationPub = node.newPublisher("/vision/BallLocation", "rss_msgs/BallLocationMsg");
-        fiducialLocationPub = node.newPublisher("/vision/FiducialLocation", "rss_msgs/FiducialLocationMsg");
+        fiducialLocationPub = node.newPublisher("/vision/FiducialLocation", "rss_msgs/FiducialMsg");
 
         // End Student Code
 
