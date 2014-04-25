@@ -283,13 +283,12 @@ public class BlobTrackingChallenge {
 						// If the surrounding point is within the image and
 						// satisfies the hue difference
 						// criteria, add it to the queue
-						if ((xPos >= 0 && xPos <= width - 1)
-								&& (yPos >= 0 && yPos <= height - 1)
-								&& (Image.hueWithinThreshold(currentHSV[yPos][xPos][0], 
-										currentHSV[(int)point.y][(int)point.x][0], hueThreshold))
-								&& (currentHSV[yPos][xPos][1] > 120 || (currentHSV[yPos][xPos][1] > satThreshold && (currentHSV[yPos][xPos][0] < 18 || currentHSV[yPos][xPos][0] > 28))))  {
-						
-							pointsToTest.add(new Point2D.Double(xPos, yPos));
+						if (xPos >= 0 && xPos <= width - 1 && yPos >= 0 && yPos <= height - 1) {
+							if (Image.hueWithinThreshold(currentHSV[yPos][xPos][0], currentHSV[(int)point.y][(int)point.x][0], hueThreshold)) {
+								if (currentHSV[yPos][xPos][1] > 120 || (currentHSV[yPos][xPos][1] > satThreshold && (currentHSV[yPos][xPos][0] < 18 || currentHSV[yPos][xPos][0] > 28))) {
+									pointsToTest.add(new Point2D.Double(xPos, yPos));
+								}
+							}
 						}
 					}
 				}
