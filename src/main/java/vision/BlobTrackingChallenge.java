@@ -82,7 +82,7 @@ public class BlobTrackingChallenge {
 		currentHSV = currentImage.getHSVArray();
 
 		if(serialize) storeImage();
-		//computeUpperLeftAverage();
+		computeUpperLeftAverage();
 		
 		// Interpret the image
 		Set<Blob> hueConstantRegions = findHueConstantRegions();
@@ -287,7 +287,7 @@ public class BlobTrackingChallenge {
 								&& (yPos >= 0 && yPos <= height - 1)
 								&& (Image.hueWithinThreshold(currentHSV[yPos][xPos][0], 
 										currentHSV[(int)point.y][(int)point.x][0], hueThreshold))
-								&& (currentHSV[yPos][xPos][1] > satThreshold)) {
+						    && ((currentHSV[yPos][xPos][1] > satThreshold && (currentHSV[yPos][xPos][0] < 18 || currentHSV[yPos][xPos][0] > 28)) || (currentHSV[yPos][xPos][1] > 110 && currentHSV[yPos][xPos][0] >= 18 && currentHSV[yPos][xPos][0] <= 28)))  {
 							pointsToTest.add(new Point2D.Double(xPos, yPos));
 						}
 					}
