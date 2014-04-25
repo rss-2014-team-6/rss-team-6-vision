@@ -285,7 +285,10 @@ public class BlobTrackingChallenge {
 						// criteria, add it to the queue
 						if (xPos >= 0 && xPos <= width - 1 && yPos >= 0 && yPos <= height - 1) {
 							if (Image.hueWithinThreshold(currentHSV[yPos][xPos][0], currentHSV[(int)point.y][(int)point.x][0], hueThreshold)) {
-								if (currentHSV[yPos][xPos][1] > 120 || (currentHSV[yPos][xPos][1] > satThreshold && (currentHSV[yPos][xPos][0] < 18 || currentHSV[yPos][xPos][0] > 28))) {
+								/*if (currentHSV[yPos][xPos][1] > 120 || (currentHSV[yPos][xPos][1] > satThreshold && (currentHSV[yPos][xPos][0] < 18 || currentHSV[yPos][xPos][0] > 28))) {
+									pointsToTest.add(new Point2D.Double(xPos, yPos));
+								}*/
+								if (currentHSV[yPos][xPos][1] > satThreshold) {
 									pointsToTest.add(new Point2D.Double(xPos, yPos));
 								}
 							}
