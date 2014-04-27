@@ -103,6 +103,8 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
             	FiducialMsg fidMsg = fiducialLocationPub.newMessage();
             	fidMsg.setRange(completeFidMsg.range);
             	fidMsg.setBearing(completeFidMsg.bearing);
+            	fidMsg.setTop(completeFidMsg.topColor);
+            	fidMsg.setBottom(completeFidMsg.bottomColor);
             	fiducialLocationPub.publish(fidMsg);
             }
         }

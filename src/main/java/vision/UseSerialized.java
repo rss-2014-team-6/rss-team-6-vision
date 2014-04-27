@@ -41,7 +41,7 @@ public class UseSerialized {
 		System.out.println("here!");
 		processedImages = new ArrayList<Image>();
 		//BlobTrackingChallenge blobTracker = new BlobTrackingChallenge(50,50,false,false,1,1,200);
-		BlobTrackingChallenge blobTracker = new BlobTrackingChallenge(160, 120, false, false, 2, 60, 1, 200);
+		BlobTrackingChallenge blobTracker = new BlobTrackingChallenge(160, 120, false, false, 2, 80, 1, 200);
 		int index = 0;
 		for (Image image : imageSet) {
 			System.out.println("Image " + index);

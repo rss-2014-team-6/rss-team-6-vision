@@ -41,6 +41,14 @@ public class BlobTrackingChallenge {
     Image currentImage;
     Image destinationImage;
     int[][][] currentHSV;
+    
+    int red_r = 255; int red_g = 0; int red_b = 0;
+    int orange_r = 252; int orange_g = 134; int orange_b = 16;
+    int yellow_r = 249; int yellow_g = 244; int yellow_b = 24;
+    int green_r = 106; int green_g = 215; int green_b = 45;
+    int blue_r = 50; int blue_g = 183; int blue_b = 210;
+    int purple_r = 119; int purple_g = 36; int purple_b = 128;
+    int blob_r; int blob_g; int blob_b;
 
 	public BlobTrackingChallenge(int width, int height, boolean serialize, boolean useBlurred, int hueThreshold, int satThreshold, int skipThreshold, int sizeThreshold) {
 		this.width = width;
@@ -87,22 +95,31 @@ public class BlobTrackingChallenge {
 		// Interpret the image
 		Set<Blob> hueConstantRegions = findHueConstantRegions();
 		Set<Blob> discoveredObjects = findObjectRegions(hueConstantRegions);
+		List<Blob> discoveredBlocks = findSpheres(discoveredObjects);
 		
-		//System.out.println("Found " + discoveredBlobs.size() + " blobs");
-		int grayscale = 50;
-		CompleteBallMessage completeBallMsg = new CompleteBallMessage();
+		//Color blobs grey
+		int grayscale = 100;
 		for (Blob blob : discoveredObjects) {
-			Set<Point2D.Double> blobPoints = blob.getPoints();	
+			Set<Point2D.Double> blobPoints = blob.getPoints();
 			for (Point2D.Double point : blobPoints) {
 				dest.setPixel((int) point.x, (int) point.y, (byte) grayscale,
 						(byte) grayscale, (byte) grayscale);
+			}
+		}
+		
+		CompleteBallMessage completeBallMsg = new CompleteBallMessage();
+		for (Blob blob : discoveredBlocks) {
+			Set<Point2D.Double> blobPoints = blob.getPoints();
+			getBlobColors(blob.colorClassifier());
+			for (Point2D.Double point : blobPoints) {
+				dest.setPixel((int) point.x, (int) point.y, (byte) blob_r,
+						(byte) blob_g, (byte) blob_b);
 			}
 			double currentRange = blob.calculateRangeBlock();
 			double currentBearing = blob.calculateBearing(width);
 			if (!completeBallMsg.sendMessage || currentRange < completeBallMsg.range) {
 				completeBallMsg = new CompleteBallMessage(currentRange, currentBearing);
-			}
-			grayscale += 50;		
+			}		
 		}
 		
 		return completeBallMsg;
@@ -123,35 +140,32 @@ public class BlobTrackingChallenge {
 		currentHSV = currentImage.getHSVArray();
 
 		if(serialize) storeImage();
-		computeUpperLeftAverage();
+		//computeUpperLeftAverage();
 		
 		// Interpret the image
 		Set<Blob> hueConstantRegions = findHueConstantRegions();
 		Set<Blob> discoveredObjects = findObjectRegions(hueConstantRegions);
 		List<Blob> discoveredSpheres = findSpheres(discoveredObjects);
 		
-		//Color blobs gray
-		int grayscale = 50;
+		//Color blobs grey
+		int grayscale = 100;
 		for (Blob blob : discoveredObjects) {
 			Set<Point2D.Double> blobPoints = blob.getPoints();
-			if (blobPoints.size() > 100) {
-				for (Point2D.Double point : blobPoints) {
-					dest.setPixel((int) point.x, (int) point.y, (byte) grayscale,
-							(byte) grayscale, (byte) grayscale);
-				}
-				grayscale += 50;
+			for (Point2D.Double point : blobPoints) {
+				dest.setPixel((int) point.x, (int) point.y, (byte) grayscale,
+						(byte) grayscale, (byte) grayscale);
 			}
 		}
 		
-		//Color spheres red and spaced correctly spheres green
+		//Color spheres white and spaced correctly spheres pink
 		for (Blob blob : discoveredSpheres) {
 			Set<Point2D.Double> blobPoints = blob.getPoints();
 			for (Point2D.Double point : blobPoints) {
-				dest.setPixel((int) point.x, (int) point.y, (byte) 255, (byte) 0, (byte) 0);
+				dest.setPixel((int) point.x, (int) point.y, (byte) 255, (byte) 255, (byte) 255);
 			}
 			if (blob.isValidHorizontalFiducial(height)) {
 				for (Point2D.Double point : blobPoints) {
-					dest.setPixel((int) point.x, (int) point.y, (byte) 0, (byte) 255, (byte) 0);
+					dest.setPixel((int) point.x, (int) point.y, (byte) 255, (byte) 102, (byte) 153);
 				}
 			}
 		}
@@ -160,19 +174,31 @@ public class BlobTrackingChallenge {
 		CompleteFiducialMessage completeFidMsg = new CompleteFiducialMessage();
 		for (int i=0; i<discoveredSpheres.size(); i++) {
 			for (int j=i+1; j<discoveredSpheres.size(); j++) {
-				if (discoveredSpheres.get(i).formsFiducial(discoveredSpheres.get(j), width, height)) {
+				Blob blob1 = discoveredSpheres.get(i);
+				Blob blob2 = discoveredSpheres.get(j);
+				if (blob1.formsFiducial(blob2, width, height)) {
 					// send message
-					Set<Point2D.Double> blobPoints1 = discoveredSpheres.get(i).getPoints();
-					Set<Point2D.Double> blobPoints2 = discoveredSpheres.get(j).getPoints();
-					blobPoints1.addAll(blobPoints2);
+					Set<Point2D.Double> blobPoints1 = blob1.getPoints();
+					Set<Point2D.Double> blobPoints2 = blob2.getPoints();
+					getBlobColors(blob1.colorClassifier());
 					for (Point2D.Double point : blobPoints1) {
-						dest.setPixel((int) point.x, (int) point.y, (byte) 0,
-								(byte) 0, (byte) 255);
+						dest.setPixel((int) point.x, (int) point.y, (byte) blob_r,
+								(byte) blob_g, (byte) blob_b);
 					}
-					double currentRange = (discoveredSpheres.get(i).calculateRangeFiducial() + discoveredSpheres.get(j).calculateRangeFiducial()) / 2.0;
-					double currentBearing = (discoveredSpheres.get(i).calculateBearing(width) + discoveredSpheres.get(j).calculateBearing(width)) / 2.0;
+					getBlobColors(blob2.colorClassifier());
+					for (Point2D.Double point : blobPoints2) {
+						dest.setPixel((int) point.x, (int) point.y, (byte) blob_r,
+								(byte) blob_g, (byte) blob_b);
+					}
+					double currentRange = (blob1.calculateRangeFiducial() + blob2.calculateRangeFiducial()) / 2.0;
+					double currentBearing = (blob1.calculateBearing(width) + blob2.calculateBearing(width)) / 2.0;
 					if (!completeFidMsg.sendMessage || currentRange < completeFidMsg.range) {
-						completeFidMsg = new CompleteFiducialMessage(currentRange, currentBearing);
+						if (blob1.centroidY > blob2.centroidY) {
+							completeFidMsg = new CompleteFiducialMessage(currentRange, currentBearing, blob1.color, blob2.color);
+						}
+						else {
+							completeFidMsg = new CompleteFiducialMessage(currentRange, currentBearing, blob2.color, blob1.color);
+						}						
 					}
 				}
 			}
@@ -246,7 +272,7 @@ public class BlobTrackingChallenge {
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
 				Point2D.Double startPoint = new Point2D.Double(x, y);
-				if (!examinedPoints.contains(startPoint) && Image.notWallorFloor(currentHSV[y][x][0], currentHSV[y][x][1], satThreshold)) {
+				if (!examinedPoints.contains(startPoint) && notWallorFloor(currentHSV[y][x][0], currentHSV[y][x][1], satThreshold)) {
 					Set<Point2D.Double> currentBlobPoints = findNewBlob(startPoint);
 					examinedPoints.addAll(currentBlobPoints);
 					discoveredBlobs.add(new Blob(currentBlobPoints));
@@ -255,6 +281,12 @@ public class BlobTrackingChallenge {
 		}
 
 		return discoveredBlobs;
+	}
+	
+	private boolean notWallorFloor(int hue, int sat, int satThreshold) {
+		if (hue > 17 && hue < 28) return false;
+		if (sat > satThreshold) return true;
+		return false;
 	}
 
 	public Set<Point2D.Double> findNewBlob(Point2D.Double startPoint) {
@@ -284,8 +316,12 @@ public class BlobTrackingChallenge {
 						// satisfies the hue difference
 						// criteria, add it to the queue
 						if (xPos >= 0 && xPos <= width - 1 && yPos >= 0 && yPos <= height - 1) {
-							if (Image.hueWithinThreshold(currentHSV[yPos][xPos][0], currentHSV[(int)point.y][(int)point.x][0], hueThreshold)) {
-								if (Image.notWallorFloor(currentHSV[yPos][xPos][0], currentHSV[yPos][xPos][1], satThreshold)) {
+							int modifiedHueThreshold = hueThreshold;
+							if (currentHSV[yPos][xPos][0] > 90) { 
+								modifiedHueThreshold = 4;
+							}
+							if (Image.hueWithinThreshold(currentHSV[yPos][xPos][0], currentHSV[(int)point.y][(int)point.x][0], modifiedHueThreshold)) {
+								if (notWallorFloor(currentHSV[yPos][xPos][0], currentHSV[yPos][xPos][1], satThreshold)) {
 									pointsToTest.add(new Point2D.Double(xPos, yPos));
 								}			
 							}
@@ -301,9 +337,9 @@ public class BlobTrackingChallenge {
 	public Set<Blob> findObjectRegions(Set<Blob> hueConstantRegions) {
 		Set<Blob> objectBlobs = new HashSet<Blob>();
 		for (Blob blob : hueConstantRegions) {
-			if (blob.getSize() > sizeThreshold && !blob.pointsOnEdge(width, height) && blob.isObject(currentHSV)) {
+			if (blob.getSize() > sizeThreshold && !blob.pointsOnEdge(width, height)) {
 				objectBlobs.add(blob);
-				blob.calculateBasics(width, height);
+				blob.calculateBasics(width, height, currentHSV);
 			}
 		}
 		return objectBlobs;
@@ -317,6 +353,17 @@ public class BlobTrackingChallenge {
 			}
 		}
 		return sphereBlobs;
+	}
+	
+	private void getBlobColors(int color) {
+		switch(color) {
+		case 0: blob_r = red_r; blob_g = red_g; blob_b = red_b; break;
+		case 1: blob_r = orange_r; blob_g = orange_g; blob_b = orange_b; break;
+		case 2: blob_r = yellow_r; blob_g = yellow_g; blob_b = yellow_b; break;
+		case 3: blob_r = green_r; blob_g = green_g; blob_b = green_b; break;
+		case 4: blob_r = blue_r; blob_g = blue_g; blob_b = blue_b; break;
+		case 5: blob_r = purple_r; blob_g = purple_g; blob_b = purple_b; break;
+		}
 	}
 	
 	public void closeSerialization() {

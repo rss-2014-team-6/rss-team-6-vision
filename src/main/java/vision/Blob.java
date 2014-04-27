@@ -20,36 +20,14 @@ public class Blob {
 	Map<Integer, Integer> minXforGivenY;
 	Map<Integer, Integer> maxXforGivenY;
 	
-	private int hueAvg;
-	private String color;
-	
 	public double centroidX;
 	public double centroidY;
 	public double width;
 	public double height;
 	
 	private double hue;
-
-	public static enum ObjectMatch {
-		RED(246,13), 
-		ORANGE(14,25),
-		YELLOW(26,30),
-		GREEN(31,110),
-		BLUE(111,168),
-		PURPLE(169,245);
-		
-		public final int minHue;
-		public final int maxHue;
-		public final int minSat;
-		public final int maxSat;
-	
-		private ObjectMatch(int minHue, int maxHue) {
-			this.minHue = minHue;
-			this.maxHue = maxHue;
-			this.minSat = 100;
-			this.maxSat = 255;
-		}
-	}
+	public int color;
+	// red = 0, orange = 1, yellow = 2, green = 3, blue = 4, purple = 5
 
 	public Blob(Set<Point2D.Double> points) {
 		this.points = points;
@@ -69,23 +47,6 @@ public class Blob {
 			if ((int)point.x == 0 || (int)point.x == width-1 || (int)point.y == 0 || (int)point.y == height-1)
 				return true;
 		}
-		return false;
-	}
-	
-	public boolean isObject(int[][][] hsv) {
-		int hueSum = 0;
-		for (Point2D.Double point : points) {
-			hueSum += hsv[(int)point.y][(int)point.x][0];
-		}
-		hueAvg = (int) hueSum / points.size();
-		
-		for (ObjectMatch potential : ObjectMatch.values()) {
-			if (Image.hueWithinRange(hueAvg, potential.minHue, potential.maxHue)) {
-				color = potential.name();
-				return true;
-			}
-		}
-		color = "NA";
 		return false;
 	}
 	
@@ -133,7 +94,7 @@ public class Blob {
 		}
 	}
 
-	public void calculateBasics(int imgWidth, int imgHeight) {
+	public void calculateBasics(int imgWidth, int imgHeight, int[][][] hsv) {
 		double sumX = 0;
 		double minX = imgWidth;
 		double maxX = 0;
@@ -149,6 +110,7 @@ public class Blob {
 			maxX = Math.max(maxX, point.x);
 			minY = Math.min(minY, point.y);
 			maxY = Math.max(maxY, point.y);
+			sumHue += hsv[(int)point.y][(int)point.x][0];
 		}
 
 		centroidX = sumX / points.size();
@@ -158,10 +120,28 @@ public class Blob {
 		hue = sumHue / points.size();
 	}
 	
+	public int colorClassifier() {
+		int red_orange = 10;
+		int orange_yellow = 24;
+		int yellow_green = 40;
+		int green_blue = 120;
+		int blue_purple = 230;
+		if (hue < red_orange) { color = 0; return color; }
+		if (hue >= red_orange && hue < orange_yellow) { color = 1; return color; }
+		if (hue >= orange_yellow && hue < yellow_green) { color = 2; return color; }
+		if (hue >= yellow_green && hue < green_blue) { color = 3; return color; }
+		if (hue >= green_blue && hue < blue_purple) { color = 4; return color; }
+		if (hue >= blue_purple) { color = 5; return color; }
+		return 0;
+	}
+	
 	public boolean formsFiducial(Blob second, int imgWidth, int imgHeight) {
+		/*System.out.println("width check: " + (this.width - second.width));
+		System.out.println("centroid check: " + (this.centroidX - second.centroidX));
+		System.out.println("threshold: " + verticalAlignThreshold*this.width);*/
 		return (this.isValidHorizontalFiducial(imgHeight) && second.isValidHorizontalFiducial(imgHeight) &&
-			(Math.abs(this.width - second.width) <= verticalAlignThreshold*this.width) &&
-			(Math.abs(this.centroidX - second.centroidX) <= verticalAlignThreshold*imgWidth));
+			(Math.abs(this.width - second.width) <= 0.5*this.width) &&
+			(Math.abs(this.centroidX - second.centroidX) <= 0.2*this.width));
 	}
 	
 	public boolean isValidHorizontalFiducial(int imgHeight) {
@@ -183,9 +163,5 @@ public class Blob {
 
 	public Set<Point2D.Double> getPoints() {
 		return points;
-	}
-
-	public String getColor() {
-		return color;
 	}
 }
