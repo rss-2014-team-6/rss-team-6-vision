@@ -51,8 +51,6 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
      */
     public VisualServo() {
         gui = new VisionGUI();
-        countBlock = 0;
-        countFid = 0;
     }
 
 
