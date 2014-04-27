@@ -23,9 +23,6 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
 
     private static final int width = 160;
     private static final int height = 120;
-    int countBlock;
-    int countFid;
-    final int maxCount = 3;
 
     /**
      * <p>
@@ -143,11 +140,6 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
 		vidSubBlock.addMessageListener(new MessageListener<sensor_msgs.Image>() {
             @Override
             public void onNewMessage(sensor_msgs.Image message) {
-            	countBlock++;
-            	if (countBlock == maxCount) {
-            		countBlock = 0;
-            		return;
-            	}
                 byte[] rgbData;
                 if (reverseRGB) {
                     rgbData = Image.RGB2BGR(message.getData().array(), (int) message.getWidth(),
@@ -176,11 +168,6 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
 		vidSubFiducial.addMessageListener(new MessageListener<sensor_msgs.Image>() {
 			@Override
 			public void onNewMessage(sensor_msgs.Image message) {
-				countFid++;
-            	if (countFid == maxCount) {
-            		countFid = 0;
-            		return;
-            	}
 				byte[] rgbData;
 				if (reverseRGB) {
 					rgbData = Image.RGB2BGR(message.getData().array(), (int) message.getWidth(),
