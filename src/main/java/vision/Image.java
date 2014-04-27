@@ -193,6 +193,12 @@ public class Image implements java.io.Serializable {
 				Math.abs(hue1 - hue2 - 256) <= threshold ||
 				Math.abs(hue2 - hue1 - 256) <= threshold);
 	}
+	
+	public static boolean notWallorFloor(int hue, int sat, int satThreshold) {
+		if (sat > 120) return true;
+		if (sat > satThreshold && !(hue > 18 && hue < 28)) return true;
+		return false;
+	}
 
 	/**
 	 * Extract a single channel from a location.
