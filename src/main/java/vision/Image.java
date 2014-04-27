@@ -195,8 +195,8 @@ public class Image implements java.io.Serializable {
 	}
 	
 	public static boolean notWallorFloor(int hue, int sat, int satThreshold) {
-		if (sat > 120) return true;
-		if (sat > satThreshold && !(hue > 18 && hue < 28)) return true;
+		if (sat > 110) return true;
+		if (sat > satThreshold && !(hue > 17 && hue < 31)) return true;
 		return false;
 	}
 
