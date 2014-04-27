@@ -123,7 +123,7 @@ public class Blob {
 	public int colorClassifier() {
 		int red_orange = 10;
 		int orange_yellow = 24;
-		int yellow_green = 40;
+		int yellow_green = 50;
 		int green_blue = 120;
 		int blue_purple = 230;
 		if (hue < red_orange) { color = 0; return color; }

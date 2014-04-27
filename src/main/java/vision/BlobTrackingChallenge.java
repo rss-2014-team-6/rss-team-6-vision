@@ -284,7 +284,7 @@ public class BlobTrackingChallenge {
 	}
 	
 	private boolean notWallorFloor(int hue, int sat, int satThreshold) {
-		if (hue > 17 && hue < 28) return false;
+		if (hue > 17 && hue < 30) return false;
 		if (sat > satThreshold) return true;
 		return false;
 	}
