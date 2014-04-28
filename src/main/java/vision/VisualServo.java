@@ -23,6 +23,9 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
 
     private static final int width = 160;
     private static final int height = 120;
+    
+    private int count = 0;
+    private final int maxCount = 3;
 
     /**
      * <p>
@@ -83,29 +86,33 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
                 e.printStackTrace();
                 continue;
             }
-
-            Image destBlock = new Image(srcBlock);
-            CompleteBallMessage completeBallMsg = blockTracker.applyBlock(srcBlock, destBlock);
-            Image destFiducial = new Image(srcFiducial);
-            CompleteFiducialMessage completeFidMsg = fiducialTracker.applyFiducial(srcFiducial, destFiducial);
-
-            // update newly formed vision message
-            gui.setVisionImage(srcBlock.toArray(),srcFiducial.toArray(),destBlock.toArray(),destFiducial.toArray(),width,height);
-
-            if (completeBallMsg.sendMessage) {
-            	BallLocationMsg ballMsg = ballLocationPub.newMessage();
-            	ballMsg.setRange(completeBallMsg.range);
-            	ballMsg.setBearing(completeBallMsg.bearing);
-            	ballLocationPub.publish(ballMsg);
-            }
             
-            if (completeFidMsg.sendMessage) {
-            	FiducialMsg fidMsg = fiducialLocationPub.newMessage();
-            	fidMsg.setRange(completeFidMsg.range);
-            	fidMsg.setBearing(completeFidMsg.bearing);
-            	fidMsg.setTop(completeFidMsg.topColor);
-            	fidMsg.setBottom(completeFidMsg.bottomColor);
-            	fiducialLocationPub.publish(fidMsg);
+            count++;
+            if (count == maxCount) {
+            	count = 0;
+	            Image destBlock = new Image(srcBlock);
+	            CompleteBallMessage completeBallMsg = blockTracker.applyBlock(srcBlock, destBlock);
+	            Image destFiducial = new Image(srcFiducial);
+	            CompleteFiducialMessage completeFidMsg = fiducialTracker.applyFiducial(srcFiducial, destFiducial);
+	
+	            // update newly formed vision message
+	            gui.setVisionImage(srcBlock.toArray(),srcFiducial.toArray(),destBlock.toArray(),destFiducial.toArray(),width,height);
+	
+	            if (completeBallMsg.sendMessage) {
+	            	BallLocationMsg ballMsg = ballLocationPub.newMessage();
+	            	ballMsg.setRange(completeBallMsg.range);
+	            	ballMsg.setBearing(completeBallMsg.bearing);
+	            	ballLocationPub.publish(ballMsg);
+	            }
+	            
+	            if (completeFidMsg.sendMessage) {
+	            	FiducialMsg fidMsg = fiducialLocationPub.newMessage();
+	            	fidMsg.setRange(completeFidMsg.range);
+	            	fidMsg.setBearing(completeFidMsg.bearing);
+	            	fidMsg.setTop(completeFidMsg.topColor);
+	            	fidMsg.setBottom(completeFidMsg.bottomColor);
+	            	fiducialLocationPub.publish(fidMsg);
+	            }
             }
         }
     }

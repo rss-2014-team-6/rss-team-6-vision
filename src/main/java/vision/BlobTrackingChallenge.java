@@ -187,7 +187,7 @@ public class BlobTrackingChallenge {
 			}*/
 		}
 		
-		System.out.println("maximum size blob: " + maxSize);
+		//System.out.println("maximum size blob: " + maxSize);
 		if (potentialWall != null) {
 			for (Point2D.Double point : potentialWall.getPoints()) {
 				dest.setPixel((int) point.x, (int) point.y, (byte) 0, (byte) 0, (byte) 0);
@@ -221,7 +221,7 @@ public class BlobTrackingChallenge {
 			}
 		}
 			
-		//Color fiducials blue
+		//Color fiducials
 		CompleteFiducialMessage completeFidMsg = new CompleteFiducialMessage();
 		for (int i=0; i<discoveredSpheres.size(); i++) {
 			for (int j=i+1; j<discoveredSpheres.size(); j++) {
@@ -343,13 +343,13 @@ public class BlobTrackingChallenge {
 		}
 	}
 	
-	private boolean notWallorFloor(int hue, int sat, int satThreshold) {
+/*	private boolean notWallorFloor(int hue, int sat, int satThreshold) {
 		return true;
 //		if (hue > 17 && hue < 25) return false;
 //		if (hue > 10 && hue < 32 && sat < 110) return false;
 //		if (sat > satThreshold) return true;
 //		return false;
-	}
+	}*/
 
 	public Set<Point2D.Double> findNewBlob(Point2D.Double startPoint, boolean findWall, Set<Integer> forbiddenHues) {
 		// Initialize a set representing the blob and a queue of points to add
