@@ -167,9 +167,9 @@ public class BlobTrackingChallenge {
 				}
 			}
 			
-			for (int hue : wallHueHistogram.keySet()) {
+			/*for (int hue : wallHueHistogram.keySet()) {
 				System.out.println("hue: " + hue + " num: " + wallHueHistogram.get(hue));
-			}
+			}*/
 			
 			for (int i=0; i<8; i++) {
 				int maxHue = 0;
@@ -182,9 +182,9 @@ public class BlobTrackingChallenge {
 				disallowedHues.add(maxHue);
 			}
 	
-			for (int hue : disallowedHues) {
+			/*for (int hue : disallowedHues) {
 				System.out.println("disallowed hue: " + hue);
-			}
+			}*/
 		}
 		
 		System.out.println("maximum size blob: " + maxSize);
