@@ -382,6 +382,9 @@ public class BlobTrackingChallenge {
 							if (currentHSV[yPos][xPos][0] > 90) { 
 								modifiedHueThreshold = 4;
 							}
+							if (currentHSV[yPos][xPos][0] > 10 && currentHSV[yPos][xPos][0] < 32) {
+							    modifiedHueThreshold = 1;
+							}
 							if (Image.hueWithinThreshold(currentHSV[yPos][xPos][0], currentHSV[(int)point.y][(int)point.x][0], modifiedHueThreshold)) {
 								if (doesPixelQualify(findWall, currentHSV[yPos][xPos][0], currentHSV[yPos][xPos][1], forbiddenHues)) {
 									pointsToTest.add(new Point2D.Double(xPos, yPos));
