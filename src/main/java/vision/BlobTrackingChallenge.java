@@ -3,9 +3,11 @@ package vision;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.io.FileOutputStream;
@@ -93,7 +95,7 @@ public class BlobTrackingChallenge {
 		//computeUpperLeftAverage();
 		
 		// Interpret the image
-		Set<Blob> hueConstantRegions = findHueConstantRegions();
+		Set<Blob> hueConstantRegions = findHueConstantRegions(false, new HashSet<Integer>());
 		Set<Blob> discoveredObjects = findObjectRegions(hueConstantRegions);
 		List<Blob> discoveredBlocks = findSpheres(discoveredObjects);
 		
@@ -142,8 +144,57 @@ public class BlobTrackingChallenge {
 		if(serialize) storeImage();
 		//computeUpperLeftAverage();
 		
-		// Interpret the image
-		Set<Blob> hueConstantRegions = findHueConstantRegions();
+		// Attempt to find the wall
+		Set<Blob> wallPotentialRegions = findHueConstantRegions(true, new HashSet<Integer>());
+		int maxSize = 0;
+		Blob potentialWall = null;
+		for (Blob blob : wallPotentialRegions) {
+			if (blob.getPoints().size() > maxSize) {
+				maxSize = blob.getPoints().size();
+				potentialWall = blob;
+			}
+		}
+		Set<Integer> disallowedHues = new HashSet<Integer>();
+		if (maxSize > 5000) {
+			Map<Integer,Integer> wallHueHistogram = new HashMap<Integer,Integer>();
+			for (Point2D.Double point : potentialWall.getPoints()) {
+				int hue = currentHSV[(int)point.y][(int)point.x][0];
+				if (wallHueHistogram.containsKey(hue)) {
+					wallHueHistogram.put(hue, wallHueHistogram.get(hue) + 1);
+				}
+				else {
+					wallHueHistogram.put(hue,  1);
+				}
+			}
+			
+			for (int hue : wallHueHistogram.keySet()) {
+				System.out.println("hue: " + hue + " num: " + wallHueHistogram.get(hue));
+			}
+			
+			for (int i=0; i<8; i++) {
+				int maxHue = 0;
+				for (int hue : wallHueHistogram.keySet()) {
+					if (wallHueHistogram.get(hue) > (wallHueHistogram.containsKey(maxHue) ? wallHueHistogram.get(maxHue) : 0)) {
+						maxHue = hue;
+					}
+				}
+				wallHueHistogram.remove(maxHue);
+				disallowedHues.add(maxHue);
+			}
+	
+			for (int hue : disallowedHues) {
+				System.out.println("disallowed hue: " + hue);
+			}
+		}
+		
+		System.out.println("maximum size blob: " + maxSize);
+		if (potentialWall != null) {
+			for (Point2D.Double point : potentialWall.getPoints()) {
+				dest.setPixel((int) point.x, (int) point.y, (byte) 0, (byte) 0, (byte) 0);
+			}
+		}
+		
+		Set<Blob> hueConstantRegions = findHueConstantRegions(false, disallowedHues);
 		Set<Blob> discoveredObjects = findObjectRegions(hueConstantRegions);
 		List<Blob> discoveredSpheres = findSpheres(discoveredObjects);
 		
@@ -265,15 +316,15 @@ public class BlobTrackingChallenge {
 		}
     }
 		
-	public Set<Blob> findHueConstantRegions() {
+	public Set<Blob> findHueConstantRegions(boolean findWall, Set<Integer> forbiddenHues) {
 		Set<Point2D.Double> examinedPoints = new HashSet<Point2D.Double>();
 		Set<Blob> discoveredBlobs = new HashSet<Blob>();
 
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
 				Point2D.Double startPoint = new Point2D.Double(x, y);
-				if (!examinedPoints.contains(startPoint) && notWallorFloor(currentHSV[y][x][0], currentHSV[y][x][1], satThreshold)) {
-					Set<Point2D.Double> currentBlobPoints = findNewBlob(startPoint);
+				if (!examinedPoints.contains(startPoint) && doesPixelQualify(findWall, currentHSV[y][x][0], currentHSV[y][x][1], forbiddenHues)) {
+					Set<Point2D.Double> currentBlobPoints = findNewBlob(startPoint, findWall, forbiddenHues);
 					examinedPoints.addAll(currentBlobPoints);
 					discoveredBlobs.add(new Blob(currentBlobPoints));
 				}
@@ -283,14 +334,24 @@ public class BlobTrackingChallenge {
 		return discoveredBlobs;
 	}
 	
+	private boolean doesPixelQualify(boolean findWall, int hue, int sat, Set<Integer> forbiddenHues) {
+		if (findWall) {
+			return (hue > 10 && hue < 32 && sat > 80);
+		}
+		else {
+			return (!forbiddenHues.contains(hue) && sat > 80 && !(hue > 17 && hue < 25));
+		}
+	}
+	
 	private boolean notWallorFloor(int hue, int sat, int satThreshold) {
-		if (hue > 17 && hue < 25) return false;
-		if (hue > 14 && hue < 32 && sat < 135) return false;
-		if (sat > satThreshold) return true;
-		return false;
+		return true;
+//		if (hue > 17 && hue < 25) return false;
+//		if (hue > 10 && hue < 32 && sat < 110) return false;
+//		if (sat > satThreshold) return true;
+//		return false;
 	}
 
-	public Set<Point2D.Double> findNewBlob(Point2D.Double startPoint) {
+	public Set<Point2D.Double> findNewBlob(Point2D.Double startPoint, boolean findWall, Set<Integer> forbiddenHues) {
 		// Initialize a set representing the blob and a queue of points to add
 		// to the blob
 		Set<Point2D.Double> currentPoints = new HashSet<Point2D.Double>();
@@ -322,7 +383,7 @@ public class BlobTrackingChallenge {
 								modifiedHueThreshold = 4;
 							}
 							if (Image.hueWithinThreshold(currentHSV[yPos][xPos][0], currentHSV[(int)point.y][(int)point.x][0], modifiedHueThreshold)) {
-								if (notWallorFloor(currentHSV[yPos][xPos][0], currentHSV[yPos][xPos][1], satThreshold)) {
+								if (doesPixelQualify(findWall, currentHSV[yPos][xPos][0], currentHSV[yPos][xPos][1], forbiddenHues)) {
 									pointsToTest.add(new Point2D.Double(xPos, yPos));
 								}			
 							}
