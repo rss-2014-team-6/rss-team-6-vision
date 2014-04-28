@@ -225,6 +225,7 @@ public class BlobTrackingChallenge {
 		CompleteFiducialMessage completeFidMsg = new CompleteFiducialMessage();
 		for (int i=0; i<discoveredSpheres.size(); i++) {
 			for (int j=i+1; j<discoveredSpheres.size(); j++) {
+				
 				Blob blob1 = discoveredSpheres.get(i);
 				Blob blob2 = discoveredSpheres.get(j);
 				if (blob1.formsFiducial(blob2, width, height)) {
@@ -324,7 +325,7 @@ public class BlobTrackingChallenge {
 			for (int y = 0; y < height; y++) {
 				Point2D.Double startPoint = new Point2D.Double(x, y);
 				if (!examinedPoints.contains(startPoint) && doesPixelQualify(findWall, currentHSV[y][x][0], currentHSV[y][x][1], forbiddenHues)) {
-					Set<Point2D.Double> currentBlobPoints = findNewBlob(startPoint, findWall, forbiddenHues);
+					Set<Point2D.Double> currentBlobPoints = findNewBlob(startPoint, findWall, forbiddenHues, examinedPoints);
 					examinedPoints.addAll(currentBlobPoints);
 					discoveredBlobs.add(new Blob(currentBlobPoints));
 				}
@@ -351,7 +352,7 @@ public class BlobTrackingChallenge {
 //		return false;
 	}*/
 
-	public Set<Point2D.Double> findNewBlob(Point2D.Double startPoint, boolean findWall, Set<Integer> forbiddenHues) {
+	public Set<Point2D.Double> findNewBlob(Point2D.Double startPoint, boolean findWall, Set<Integer> forbiddenHues, Set<Point2D.Double> examinedPoints) {
 		// Initialize a set representing the blob and a queue of points to add
 		// to the blob
 		Set<Point2D.Double> currentPoints = new HashSet<Point2D.Double>();
@@ -385,10 +386,13 @@ public class BlobTrackingChallenge {
 							if (currentHSV[yPos][xPos][0] > 10 && currentHSV[yPos][xPos][0] < 32) {
 							    modifiedHueThreshold = 1;
 							}
-							if (Image.hueWithinThreshold(currentHSV[yPos][xPos][0], currentHSV[(int)point.y][(int)point.x][0], modifiedHueThreshold)) {
-								if (doesPixelQualify(findWall, currentHSV[yPos][xPos][0], currentHSV[yPos][xPos][1], forbiddenHues)) {
-									pointsToTest.add(new Point2D.Double(xPos, yPos));
-								}			
+							Point2D.Double considerPoint = new Point2D.Double(xPos, yPos);
+							if (!examinedPoints.contains(considerPoint)) {
+								if (Image.hueWithinThreshold(currentHSV[yPos][xPos][0], currentHSV[(int)point.y][(int)point.x][0], modifiedHueThreshold)) {
+									if (doesPixelQualify(findWall, currentHSV[yPos][xPos][0], currentHSV[yPos][xPos][1], forbiddenHues)) {
+										pointsToTest.add(considerPoint);
+									}			
+								}
 							}
 						}
 					}
