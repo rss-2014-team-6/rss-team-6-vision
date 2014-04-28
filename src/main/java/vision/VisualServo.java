@@ -102,6 +102,7 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
 	            	BallLocationMsg ballMsg = ballLocationPub.newMessage();
 	            	ballMsg.setRange(completeBallMsg.range);
 	            	ballMsg.setBearing(completeBallMsg.bearing);
+	            	ballMsg.setColor(completeBallMsg.color);
 	            	ballLocationPub.publish(ballMsg);
 	            }
 	            

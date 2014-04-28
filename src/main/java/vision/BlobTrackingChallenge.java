@@ -120,7 +120,7 @@ public class BlobTrackingChallenge {
 			double currentRange = blob.calculateRangeBlock();
 			double currentBearing = blob.calculateBearing(width);
 			if (!completeBallMsg.sendMessage || currentRange < completeBallMsg.range) {
-				completeBallMsg = new CompleteBallMessage(currentRange, currentBearing);
+				completeBallMsg = new CompleteBallMessage(currentRange, currentBearing, blob.color);
 			}		
 		}
 		
@@ -246,10 +246,10 @@ public class BlobTrackingChallenge {
 					double currentBearing = (blob1.calculateBearing(width) + blob2.calculateBearing(width)) / 2.0;
 					if (!completeFidMsg.sendMessage || currentRange < completeFidMsg.range) {
 						if (blob1.centroidY > blob2.centroidY) {
-							completeFidMsg = new CompleteFiducialMessage(currentRange, currentBearing, blob1.color, blob2.color);
+							completeFidMsg = new CompleteFiducialMessage(currentRange, currentBearing, blob2.color, blob1.color);
 						}
 						else {
-							completeFidMsg = new CompleteFiducialMessage(currentRange, currentBearing, blob2.color, blob1.color);
+							completeFidMsg = new CompleteFiducialMessage(currentRange, currentBearing, blob1.color, blob2.color);
 						}						
 					}
 				}
