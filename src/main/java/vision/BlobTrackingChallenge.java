@@ -90,9 +90,9 @@ public class BlobTrackingChallenge {
 		
 		// Compute the hues of the current image (unfiltered and filtered)
 		currentHSV = currentImage.getHSVArray();
-		
-		if(currentHSV != null)
-		    if(serialize) storeImage();
+
+		if(serialize) storeImage();
+
 		//computeUpperLeftAverage();
 		
 		// Interpret the image

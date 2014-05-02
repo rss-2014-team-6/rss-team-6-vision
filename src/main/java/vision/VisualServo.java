@@ -113,7 +113,8 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
 	            	fidMsg.setTop(completeFidMsg.topColor);
 	            	fidMsg.setBottom(completeFidMsg.bottomColor);
 			fidMsg.setTime(System.currentTimeMillis());
-	            	fiducialLocationPub.publish(fidMsg);
+
+			fiducialLocationPub.publish(fidMsg);
 	            }
             }
         }
