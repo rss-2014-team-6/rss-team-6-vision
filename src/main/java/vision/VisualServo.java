@@ -130,8 +130,9 @@ public class VisualServo extends AbstractNodeMain implements Runnable {
      */
     @Override
     public void onStart(final ConnectedNode node) {
-        blockTracker = new BlobTrackingChallenge(width, height, false, false, 2, 80, 1, 200);
-        fiducialTracker = new BlobTrackingChallenge(width, height, false, false, 2, 80, 1, 200);
+	// bhomberg -- I just made the blob tracking threshold smaller so that it'll spot blocks from further away
+        blockTracker = new BlobTrackingChallenge(width, height, false, false, 2, 80, 1, 150);
+        fiducialTracker = new BlobTrackingChallenge(width, height, false, false, 2, 80, 1, 150);
 
         // Begin Student Code
 
